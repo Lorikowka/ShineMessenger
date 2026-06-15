@@ -1,0 +1,214 @@
+.chat-list-window {
+    width: 400px;
+    height: 500px;
+}
+
+.no-padding {
+    padding: 0 !important;
+}
+
+.chat-search-container {
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid var(--raya-neon);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.search-icon {
+    color: var(--raya-neon);
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.chat-search-input {
+    background: transparent;
+    border: none;
+    color: var(--raya-text);
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    outline: none;
+    width: 100%;
+}
+
+.chat-empty-state {
+    padding: 20px;
+    text-align: center;
+    color: var(--raya-error);
+    font-size: 1.2rem;
+}
+
+.search-category-label {
+    padding: 10px 15px 5px;
+    font-size: 0.8rem;
+    color: var(--raya-neon);
+    opacity: 0.6;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.chat-item.search-result {
+    border-left: 2px solid var(--raya-neon);
+}
+
+.chat-item-status.online {
+    background: #00ff00;
+    box-shadow: 0 0 8px #00ff00;
+}
+
+.chat-items-container {
+    height: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--raya-neon) transparent;
+}
+
+/* Стилизация скроллбара для пиксельного вида */
+.chat-items-container::-webkit-scrollbar {
+    width: 8px;
+}
+.chat-items-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+}
+.chat-items-container::-webkit-scrollbar-thumb {
+    background: var(--raya-neon);
+    border: 2px solid var(--raya-bg);
+}
+
+.chat-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid rgba(0, 242, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.chat-item:hover {
+    background: rgba(0, 242, 255, 0.1);
+    box-shadow: inset 0 0 10px rgba(0, 242, 255, 0.2);
+}
+
+.chat-item.active {
+    background: rgba(0, 242, 255, 0.2);
+    border-left: 4px solid var(--raya-neon);
+}
+
+.chat-item-status {
+    width: 10px;
+    height: 10px;
+    background: var(--raya-neon);
+    margin-right: 15px;
+    box-shadow: 0 0 5px var(--raya-neon);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.unread-marker {
+    color: #ff0000;
+    font-weight: bold;
+    font-size: 1.2rem;
+    position: absolute;
+    text-shadow: 0 0 5px #ff0000;
+    animation: flicker 0.5s infinite alternate;
+}
+
+.chat-item.unread {
+    border-left: 4px solid #ff0000;
+    background: rgba(255, 0, 0, 0.05);
+}
+
+.chat-item-details {
+    flex-grow: 1;
+}
+
+.chat-item-name {
+    font-size: 1.2rem;
+    color: var(--raya-text);
+}
+
+.chat-item-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.chat-open-btn {
+    background: transparent;
+    border: 1px solid var(--raya-neon);
+    color: var(--raya-neon);
+    font-family: 'VT323', monospace;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 2px 5px;
+}
+
+.chat-open-btn:hover {
+    background: var(--raya-neon);
+    color: #000;
+}
+
+.chat-item-last-msg {
+    font-size: 0.8rem;
+    color: var(--raya-neon);
+    opacity: 0.8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.chat-item-type {
+    font-size: 0.8rem;
+    color: var(--raya-neon);
+    opacity: 0.7;
+}
+
+.no-border {
+    border-bottom: none !important;
+}
+
+.view-selector {
+    display: flex;
+    width: 100%;
+    gap: 10px;
+    padding: 10px 0;
+}
+
+.selector-btn {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--raya-neon);
+    color: var(--raya-neon);
+    font-family: 'VT323', monospace;
+    cursor: pointer;
+    padding: 5px;
+    transition: all 0.2s;
+    opacity: 0.6;
+}
+
+.selector-btn.active {
+    background: var(--raya-neon);
+    color: #000;
+    opacity: 1;
+    box-shadow: 0 0 10px var(--raya-neon);
+}
+
+.archive-item {
+    border-left: 2px solid var(--raya-error) !important;
+}
+
+.archive-status {
+    background: var(--raya-error) !important;
+    box-shadow: 0 0 8px var(--raya-error) !important;
+}
+
+.selection-empty {
+    padding: 10px;
+    text-align: center;
+    font-size: 0.8rem;
+    opacity: 0.5;
+}

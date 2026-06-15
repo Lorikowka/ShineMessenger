@@ -1,0 +1,414 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+:root {
+    --raya-bg: rgba(16, 68, 86, 0.7);
+    --raya-neon: #00f2ff;
+    --raya-neon-glow: rgba(0, 242, 255, 0.5);
+    --raya-text: #ffffff;
+    --raya-error: #ff6b6b;
+    --pixel-border: 4px;
+}
+
+.message-view-window {
+    width: 100%;
+    height: 100%;
+    border: none;
+    box-shadow: none;
+}
+
+.raya-window-container {
+    width: 100%;
+    height: 100%;
+}
+
+.corruption-meta {
+    margin: 0 20px;
+    flex-grow: 1;
+    max-width: 300px;
+}
+
+.corruption-label {
+    font-size: 0.8rem;
+    color: var(--raya-error);
+    margin-bottom: 5px;
+    text-shadow: 0 0 5px var(--raya-error);
+}
+
+.corruption-bar-container {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid var(--raya-error);
+    position: relative;
+}
+
+.corruption-bar-fill {
+    height: 100%;
+    background: var(--raya-error);
+    box-shadow: 0 0 10px var(--raya-error);
+    transition: width 0.3s ease;
+}
+
+.raya-scanlines {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(255, 255, 255, 0.05) 0px,
+        rgba(255, 255, 255, 0.05) 1px,
+        transparent 1px,
+        transparent 3px
+    );
+    pointer-events: none;
+    z-index: 10;
+    animation: scanlineScroll 10s linear infinite;
+}
+
+@keyframes scanlineScroll {
+    from { background-position: 0 0; }
+    to { background-position: 0 100%; }
+}
+
+.raya-window-inner {
+    padding: 15px;
+    border: 2px solid rgba(0, 242, 255, 0.3);
+    margin: 4px;
+    height: calc(100% - 8px); /* Чтобы внутреннее окно учитывало margin */
+    display: flex;
+    flex-direction: column;
+}
+
+.raya-header {
+    display: flex; align-items: center;
+    border-bottom: 2px solid var(--raya-neon);
+    padding-bottom: 10px; margin-bottom: 15px;
+    flex-shrink: 0; /* Шапка не должна сжиматься */
+}
+
+.raya-avatar-placeholder {
+    width: 48px; height: 48px;
+    border: 2px solid var(--raya-neon);
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0, 0, 0, 0.3); margin-right: 15px;
+}
+
+.avatar-pixel-silhouette {
+    width: 30px; height: 30px;
+    background: var(--raya-neon);
+    clip-path: polygon(30% 0%, 70% 0%, 70% 30%, 100% 30%, 100% 70%, 70% 70%, 70% 100%, 30% 100%, 30% 70%, 0% 70%, 0% 30%, 30% 30%);
+}
+
+.raya-info { flex-grow: 1; font-size: 1.2rem; line-height: 1.2; }
+.raya-glitch-text { color: var(--raya-neon); text-shadow: 0 0 5px var(--raya-neon); }
+
+.raya-close-btn {
+    background: transparent; border: 2px solid var(--raya-neon);
+    color: var(--raya-neon); font-family: 'VT323', monospace;
+    cursor: pointer; padding: 2px 8px; transition: all 0.2s;
+}
+
+.raya-close-btn:hover { background: var(--raya-neon); color: #000; box-shadow: 0 0 10px var(--raya-neon); }
+
+.raya-body {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(0, 242, 255, 0.2);
+    padding: 10px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Важно: само тело не скроллится */
+}
+
+.raya-messages-container {
+    flex-grow: 1;
+    overflow-y: auto; /* Скролл только здесь */
+    margin-bottom: 10px;
+    padding-right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--raya-neon) transparent;
+}
+
+.raya-messages-container::-webkit-scrollbar {
+    width: 6px;
+}
+.raya-messages-container::-webkit-scrollbar-thumb {
+    background: var(--raya-neon);
+    border-radius: 0;
+}
+
+.raya-message {
+    font-size: 1.1rem;
+    word-break: break-word;
+    line-height: 1.2;
+}
+
+.msg-sender {
+    color: var(--raya-neon);
+    margin-right: 8px;
+    font-weight: bold;
+}
+
+.raya-message.system {
+    color: var(--raya-error);
+    border-left: 2px solid var(--raya-error);
+    padding-left: 8px;
+    animation: flicker 0.2s infinite alternate;
+}
+
+.raya-message.system .msg-sender {
+    color: var(--raya-error);
+}
+
+.raya-email-form, .raya-simple-chat-form {
+    flex-shrink: 0; /* Форма ввода никогда не сжимается */
+    border-top: 2px solid var(--raya-neon);
+    padding-top: 15px;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.email-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(0, 242, 255, 0.2);
+    padding-bottom: 5px;
+}
+
+.email-label {
+    color: var(--raya-neon);
+    font-size: 0.9rem;
+    font-weight: bold;
+    min-width: 50px;
+}
+
+.email-subject-input {
+    flex-grow: 1;
+    background: transparent;
+    border: none;
+    color: var(--raya-neon);
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    outline: none;
+    text-transform: uppercase;
+}
+
+.email-body-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.email-body-input {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 242, 255, 0.2);
+    color: var(--raya-text);
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
+    padding: 10px;
+    outline: none;
+    resize: none;
+}
+
+.email-send-btn {
+    background: var(--raya-neon);
+    color: #000;
+    border: none;
+    font-family: 'VT323', monospace;
+    font-size: 1rem;
+    padding: 5px 15px;
+    cursor: pointer;
+    align-self: flex-end;
+}
+
+/* Стили для отдельных сообщений-писем */
+.raya-email-item {
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-shrink: 0; /* Чтобы письма не сжимались внутри контейнера */
+}
+
+.raya-email-item.system {
+    border-color: var(--raya-error);
+    background: rgba(255, 107, 107, 0.05);
+}
+
+.email-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    padding-bottom: 5px;
+}
+
+.email-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.email-header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.email-open-action {
+    background: var(--raya-neon);
+    color: #000;
+    border: none;
+    font-family: 'VT323', monospace;
+    font-size: 0.8rem;
+    padding: 2px 8px;
+    cursor: pointer;
+    box-shadow: 0 0 5px var(--raya-neon);
+}
+
+.email-open-action:hover {
+    background: #fff;
+}
+
+.raya-email-item.open {
+    border-bottom: 2px solid var(--raya-neon);
+    background: rgba(0, 242, 255, 0.05);
+}
+
+.chat-mode {
+    gap: 5px;
+}
+
+.simple-message {
+    font-size: 1.1rem;
+    padding: 8px 12px;
+    border-radius: 0;
+    background: rgba(0, 242, 255, 0.05);
+    max-width: 85%;
+    align-self: flex-start;
+    border-left: 2px solid var(--raya-neon);
+    flex-shrink: 0;
+}
+
+.simple-message.system {
+    background: rgba(255, 107, 107, 0.1);
+    border-left: 2px solid var(--raya-error);
+    max-width: 100%;
+}
+
+.raya-system-error {
+    color: var(--raya-error); font-size: 0.9rem;
+    border-top: 1px dashed var(--raya-error); padding-top: 10px;
+    animation: flicker 0.1s infinite;
+}
+
+@keyframes flicker {
+    0% { opacity: 0.9; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
+}
+
+.raya-modal-overlay.global-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100000;
+}
+
+.email-read-modal {
+    width: 600px;
+    background: var(--raya-bg);
+    border: var(--pixel-border) solid var(--raya-neon);
+    box-shadow: 0 0 30px var(--raya-neon-glow);
+}
+
+.modal-body {
+    min-height: 200px;
+    max-height: 450px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.email-full-content {
+    font-size: 1.2rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    color: var(--raya-text);
+}
+
+.raya-header-modal {
+    border-bottom: 1px solid var(--raya-neon);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.modal-meta-line {
+    font-size: 1.1rem;
+    color: var(--raya-neon);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px solid var(--raya-neon);
+    flex-shrink: 0;
+}
+
+.danger-text {
+    color: var(--raya-error) !important;
+    border-color: var(--raya-error) !important;
+}
+
+.danger-text:hover {
+    background: var(--raya-error) !important;
+    color: #000 !important;
+}
+
+.simple-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.simple-chat-input {
+    flex-grow: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 242, 255, 0.2);
+    color: var(--raya-text);
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    padding: 8px 12px;
+    outline: none;
+}
+
+.simple-send-btn {
+    background: var(--raya-neon);
+    color: #000;
+    border: none;
+    font-family: 'VT323', monospace;
+    padding: 8px 15px;
+    cursor: pointer;
+}
+
+.archive-style {
+    border-color: var(--raya-error);
+    background: rgba(255, 107, 107, 0.05);
+}

@@ -1,0 +1,77 @@
+.login-window {
+    width: 450px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+}
+
+.login-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.login-field label {
+    font-size: 1rem;
+    color: var(--raya-text);
+}
+
+.login-field select, .login-field input {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--raya-neon);
+    color: var(--raya-neon);
+    font-family: 'VT323', monospace;
+    padding: 5px;
+    font-size: 1.1rem;
+    outline: none;
+    width: 150px;
+}
+
+.id-preview {
+    margin: 20px 0;
+    text-align: center;
+    font-size: 1.5rem;
+    border: 1px dashed var(--raya-neon);
+    padding: 10px;
+}
+
+.raya-neon-text {
+    color: var(--raya-neon);
+    text-shadow: 0 0 10px var(--raya-neon);
+}
+
+.login-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.raya-btn {
+    flex: 1;
+    background: transparent;
+    border: 2px solid var(--raya-neon);
+    color: var(--raya-neon);
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.raya-btn:hover {
+    background: rgba(0, 242, 255, 0.1);
+    box-shadow: 0 0 10px var(--raya-neon);
+}
+
+.raya-btn.primary {
+    background: var(--raya-neon);
+    color: #000;
+}
+
+.raya-btn.primary:hover {
+    background: #fff;
+    box-shadow: 0 0 20px #fff;
+}
