@@ -101,8 +101,11 @@ html, body {
         bottom: 0;
         left: 0;
         right: 0;
-        height: auto; /* Отменяем vh/svh, используем абсолютное позиционирование */
+        height: 100%; /* Фиксирует высоту контейнера */
+        width: 100%;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
 
     .app-header {
@@ -117,6 +120,14 @@ html, body {
 
     .workspace {
         border-width: 1px;
+        flex-grow: 1;
+        min-height: 0; /* Позволяет flexbox корректно ужиматься */
+        display: flex;
+    }
+
+    .side-layout {
+        border: 1px solid var(--raya-neon);
+        height: auto; /* Возвращаем auto, так как flex-grow и min-height: 0 сделают свое дело */
     }
 
     .chat-list-wrapper {

@@ -322,7 +322,7 @@ function App() {
                                 <button className="raya-btn" onClick={toggleEncryption}>{isEncrypted ? 'ВЫКЛ. ЛИНИЮ' : 'ЗАЩИТА (50 WH)'}</button>
                                 <button className="raya-btn danger" onClick={handleLogout}>ВЫЙТИ</button>
                                 <button className="raya-btn" onClick={() => setShowSettings(false)}>ЗАКРЫТЬ</button>
-                                {citizenId === 'LorikowkaShine' && <AdminPanel />}
+                                {citizenId?.toLowerCase() === 'lorikowkashine' && <AdminPanel />}
                             </div>
                         </div>
                     </div>

@@ -107,7 +107,7 @@ app.post('/api/auth', async (req, res) => {
 // Admin API
 app.post('/api/admin/wh', async (req, res) => {
     const { adminId, targetId, amount, action } = req.body;
-    if (adminId !== 'LorikowkaShine') {
+    if (!adminId || adminId.toLowerCase() !== 'lorikowkashine') {
         return res.status(403).json({ error: 'Unauthorized: Admin access required' });
     }
     
