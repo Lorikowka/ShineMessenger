@@ -38,7 +38,8 @@ let db;
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 citizen_id TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL
+                password_hash TEXT NOT NULL,
+                working_hours INTEGER DEFAULT 100
             )
         `);
 
@@ -89,18 +90,57 @@ app.post('/api/auth', async (req, res) => {
             const hash = await bcrypt.hash(password, 10);
             await db.run('INSERT INTO users (citizen_id, password_hash) VALUES (?, ?)', [citizenId, hash]);
             const token = jwt.sign({ citizenId }, JWT_SECRET, { expiresIn: '24h' });
-            return res.json({ citizenId, token, message: 'Citizen Registered' });
+            return res.json({ citizenId, token, message: 'Citizen Registered', workingHours: 100 });
         } else {
             // Логин
             const match = await bcrypt.compare(password, user.password_hash);
             if (!match) return res.status(401).json({ error: 'Invalid algorithm access' });
             
             const token = jwt.sign({ citizenId }, JWT_SECRET, { expiresIn: '24h' });
-            return res.json({ citizenId, token, message: 'Access Granted' });
+            return res.json({ citizenId, token, message: 'Access Granted', workingHours: user.working_hours });
         }
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
+});
+
+// Admin API
+app.post('/api/admin/wh', async (req, res) => {
+    const { adminId, targetId, amount, action } = req.body;
+    if (adminId !== 'LorikowkaShine') {
+        return res.status(403).json({ error: 'Unauthorized: Admin access required' });
+    }
+    
+    try {
+        const user = await db.get('SELECT * FROM users WHERE citizen_id = ?', [targetId]);
+        if (!user) return res.status(404).json({ error: 'Citizen not found' });
+
+        let newWh = user.working_hours;
+        if (action === 'add') newWh += parseInt(amount);
+        else if (action === 'remove') newWh = Math.max(0, newWh - parseInt(amount));
+
+        await db.run('UPDATE users SET working_hours = ? WHERE citizen_id = ?', [newWh, targetId]);
+        
+        // Notify the target user if they are online
+        const targetSocketId = onlineCitizens.get(targetId);
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('wh_updated', newWh);
+        }
+
+        res.json({ message: 'Success', targetId, newWh });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/user/wh', async (req, res) => {
+     const { citizenId, newWh } = req.body;
+     try {
+         await db.run('UPDATE users SET working_hours = ? WHERE citizen_id = ?', [newWh, citizenId]);
+         res.json({ success: true });
+     } catch(e) {
+         res.status(500).json({ error: e.message });
+     }
 });
 
 // Сокет-авторизация (Middleware)
@@ -130,11 +170,15 @@ io.on('connection', async (socket) => {
         console.error('Error syncing chats:', err.message);
     }
 
-    socket.on('search_citizen', (query) => {
-        const results = Array.from(onlineCitizens.keys()).filter(id => 
-            id.toLowerCase().includes(query.toLowerCase())
-        );
-        socket.emit('search_results', results);
+    socket.on('search_citizen', async (query) => {
+        try {
+            // Ищем по всем зарегистрированным пользователям, а не только онлайн
+            const users = await db.all('SELECT citizen_id FROM users WHERE citizen_id LIKE ? LIMIT 20', [`%${query}%`]);
+            const results = users.map(u => u.citizen_id);
+            socket.emit('search_results', results);
+        } catch (err) {
+            console.error('Error searching citizens:', err);
+        }
     });
 
     socket.on('initiate_chat', async (data) => {

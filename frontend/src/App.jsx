@@ -128,7 +128,7 @@ function App() {
         }
     }, [citizenId, token]);
 
-    const handleLogin = (id, authToken) => {
+    const handleLogin = (id, authToken, initialWh = 100) => {
         if (!id || !authToken) {
             console.error('[DEBUG] Попытка входа с неполными данными:', { id: !!id, token: !!authToken });
             return;
@@ -138,8 +138,11 @@ function App() {
         setToken(authToken);
         localStorage.setItem('citizenId', id);
         localStorage.setItem('token', authToken);
-        setWorkingHours(100);
-        localStorage.setItem('workingHours', 100);
+        
+        // Use server provided WH
+        setWorkingHours(initialWh);
+        localStorage.setItem('workingHours', initialWh);
+
         setChats(DUMMY_CHATS);
         setMessages({});
         initSocket(id, authToken);
@@ -164,12 +167,74 @@ function App() {
         setConnected(false);
     };
 
-    const toggleEncryption = () => {
+    const toggleEncryption = async () => {
         const newState = !isEncrypted;
         if (newState && workingHours < 50) return;
-        if (newState) { setWorkingHours(prev => prev - 50); localStorage.setItem('workingHours', workingHours - 50); }
+        
+        if (newState) { 
+            const newWh = workingHours - 50;
+            setWorkingHours(newWh); 
+            localStorage.setItem('workingHours', newWh); 
+            
+            // Sync with server
+            const apiUrl = 'https://shinemessenger-production.up.railway.app';
+            await fetch(`${apiUrl}/api/user/wh`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ citizenId, newWh })
+            });
+        }
         setIsEncrypted(newState);
         localStorage.setItem('isEncrypted', newState);
+    };
+
+    useEffect(() => {
+        if (socket) {
+            socket.on('wh_updated', (newWh) => {
+                setWorkingHours(newWh);
+                localStorage.setItem('workingHours', newWh);
+            });
+        }
+        return () => {
+            if (socket) socket.off('wh_updated');
+        };
+    }, [socket]);
+
+    const AdminPanel = () => {
+        const [targetId, setTargetId] = useState('');
+        const [amount, setAmount] = useState(100);
+        
+        const handleWhAction = async (action) => {
+            const apiUrl = 'https://shinemessenger-production.up.railway.app';
+            await fetch(`${apiUrl}/api/admin/wh`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminId: citizenId, targetId, amount, action })
+            });
+            alert(`WH ${action === 'add' ? 'добавлены' : 'списаны'}`);
+        };
+
+        return (
+            <div className="admin-panel">
+                <h4>АДМИНИСТРИРОВАНИЕ WH</h4>
+                <input 
+                    className="simple-chat-input" 
+                    placeholder="ID ГРАЖДАНИНА" 
+                    value={targetId} 
+                    onChange={e => setTargetId(e.target.value)} 
+                />
+                <input 
+                    type="number" 
+                    className="simple-chat-input" 
+                    value={amount} 
+                    onChange={e => setAmount(e.target.value)} 
+                />
+                <div style={{display: 'flex', gap: '5px', marginTop: '10px'}}>
+                    <button className="raya-btn-mini primary" onClick={() => handleWhAction('add')}>НАЧИСЛИТЬ</button>
+                    <button className="raya-btn-mini danger" onClick={() => handleWhAction('remove')}>ШТРАФ</button>
+                </div>
+            </div>
+        );
     };
 
     const handleDeleteChat = (id) => {
@@ -257,6 +322,7 @@ function App() {
                                 <button className="raya-btn" onClick={toggleEncryption}>{isEncrypted ? 'ВЫКЛ. ЛИНИЮ' : 'ЗАЩИТА (50 WH)'}</button>
                                 <button className="raya-btn danger" onClick={handleLogout}>ВЫЙТИ</button>
                                 <button className="raya-btn" onClick={() => setShowSettings(false)}>ЗАКРЫТЬ</button>
+                                {citizenId === 'LorikowkaShine' && <AdminPanel />}
                             </div>
                         </div>
                     </div>
