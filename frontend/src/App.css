@@ -10,11 +10,13 @@ body {
 }
 
 .raya-app-container {
-    padding: 40px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 100%;
+    height: 100vh;
+    height: 100svh; /* Использование svh для корректной высоты на мобильных */
+    box-sizing: border-box;
 }
 
 .app-header {
@@ -23,35 +25,44 @@ body {
     align-items: center;
     width: 100%;
     max-width: 1200px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     border-bottom: 1px solid var(--raya-neon);
     padding-bottom: 10px;
+    flex-shrink: 0;
 }
 
 .user-badge {
     background: rgba(0, 242, 255, 0.1);
     border: 1px solid var(--raya-neon);
     padding: 5px 15px;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     color: var(--raya-neon);
     text-shadow: 0 0 5px var(--raya-neon);
+    cursor: pointer;
 }
 
 .main-title {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
     margin: 0;
     text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
-    letter-spacing: 5px;
+    letter-spacing: 2px;
 }
 
 .side-layout {
     display: flex;
     gap: 0;
-    width: 100vw;
-    height: 80vh;
+    width: 100%;
+    flex-grow: 1;
     max-width: 1400px;
     border: 2px solid var(--raya-neon);
     background: rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+}
+
+.chat-list-wrapper {
+    width: 350px;
+    height: 100%;
+    flex-shrink: 0;
 }
 
 .chat-view {
@@ -59,6 +70,65 @@ body {
     height: 100%;
     position: relative;
     border-left: 2px solid var(--raya-neon);
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    body {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+    }
+
+    .raya-app-container {
+        padding: 5px;
+    }
+
+    .app-header {
+        margin-bottom: 5px;
+        padding: 5px;
+    }
+
+    .main-title {
+        font-size: 1.2rem;
+        letter-spacing: 1px;
+    }
+
+    .user-stats {
+        gap: 10px;
+    }
+
+    .stat-item {
+        font-size: 1rem;
+    }
+
+    .user-badge {
+        font-size: 0.9rem;
+        padding: 3px 8px;
+    }
+
+    .side-layout {
+        border: 1px solid var(--raya-neon);
+        height: 0; /* Позволяет flex-grow работать корректно */
+    }
+
+    .chat-list-wrapper {
+        width: 100%;
+    }
+
+    .chat-view {
+        border-left: none;
+    }
+
+    .mobile-hidden {
+        display: none !important;
+    }
+
+    .settings-window {
+        width: 95vw;
+        max-width: none;
+    }
 }
 
 .no-chat-selected {
