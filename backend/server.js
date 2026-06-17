@@ -7,6 +7,7 @@ const { open } = require('sqlite');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const helmet = require('helmet');
+const cors = require('cors');
 
 const app = express();
 const server = http.createServer(app);
@@ -14,10 +15,11 @@ const io = new Server(server, {
     cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const AI_SERVER_URL = 'http://localhost:8000/api/v1/analyze';
 const JWT_SECRET = 'RAYA_PRIME_SECURE_KEY_2026'; // В реальном проекте хранить в .env
 
+app.use(cors()); // Разрешаем запросы с других источников
 app.use(helmet()); // Защита заголовков
 app.use(express.json());
 
