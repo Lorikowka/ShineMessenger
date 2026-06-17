@@ -33,6 +33,7 @@ const Login = ({ onLogin }) => {
 
         try {
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+            console.log('[DEBUG] Попытка авторизации. URL API:', apiUrl);
             const response = await fetch(`${apiUrl}/api/auth`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
