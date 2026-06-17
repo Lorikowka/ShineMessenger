@@ -112,6 +112,12 @@ function App() {
             }));
         });
 
+        socket.on('wh_updated', (newWh) => {
+            console.log('[DEBUG] Получено обновление WH с сервера:', newWh);
+            setWorkingHours(newWh);
+            localStorage.setItem('workingHours', newWh);
+        });
+
         socket.on('chat_started', (data) => setChats(prev => prev.find(c => c.id === data.id) ? prev : [data, ...prev]));
         socket.on('search_results', (results) => setSearchResults(results.filter(id => id !== citizenId)));
         
@@ -188,30 +194,34 @@ function App() {
         localStorage.setItem('isEncrypted', newState);
     };
 
-    useEffect(() => {
-        if (socket) {
-            socket.on('wh_updated', (newWh) => {
-                setWorkingHours(newWh);
-                localStorage.setItem('workingHours', newWh);
-            });
-        }
-        return () => {
-            if (socket) socket.off('wh_updated');
-        };
-    }, [socket]);
-
     const AdminPanel = () => {
         const [targetId, setTargetId] = useState('');
         const [amount, setAmount] = useState(100);
         
         const handleWhAction = async (action) => {
             const apiUrl = 'https://shinemessenger-production.up.railway.app';
-            await fetch(`${apiUrl}/api/admin/wh`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ adminId: citizenId, targetId, amount, action })
-            });
-            alert(`WH ${action === 'add' ? 'добавлены' : 'списаны'}`);
+            try {
+                const response = await fetch(`${apiUrl}/api/admin/wh`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminId: citizenId, targetId, amount, action })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Успех: Баланс гражданина ${targetId} теперь ${data.newWh} WH`);
+                    // Если начисляем сами себе - обновляем UI принудительно, если сокет не сработал
+                    if (targetId === citizenId) {
+                        setWorkingHours(data.newWh);
+                        localStorage.setItem('workingHours', data.newWh);
+                    }
+                } else {
+                    const err = await response.json();
+                    alert(`Ошибка: ${err.error}`);
+                }
+            } catch (err) {
+                alert('Ошибка соединения с сервером.');
+            }
         };
 
         return (
