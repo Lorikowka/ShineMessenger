@@ -11,7 +11,8 @@ const DUMMY_CHATS = [
     { id: '3', name: 'РАЙЯ_ПРАЙМ', lastMessage: 'SECURITY ALERT', type: 'AI' },
 ];
 
-let socket;
+// Глобальная переменная сокета (Singleton)
+let socket = null;
 
 function App() {
     const [citizenId, setCitizenId] = useState(localStorage.getItem('citizenId') || null);
@@ -23,25 +24,39 @@ function App() {
     const [chats, setChats] = useState(DUMMY_CHATS);
     const [searchResults, setSearchResults] = useState([]);
     const [showSettings, setShowSettings] = useState(false);
+    const [mobileView, setMobileView] = useState('list'); // 'list' or 'chat'
+    const [connected, setConnected] = useState(false);
 
     const selectedChatRef = useRef(null);
     useEffect(() => { selectedChatRef.current = selectedChat; }, [selectedChat]);
 
-    useEffect(() => {
-        if (!citizenId || !token) return;
+    // Функция инициализации (вынесена для возможности ручного вызова)
+    const initSocket = (id, tkn) => {
+        if (socket) return socket;
+        if (!id || !tkn) {
+            console.warn('[DEBUG] Невозможно инициализировать сокет: отсутствуют данные.', { id: !!id, tkn: !!tkn });
+            return null;
+        }
 
-        // Инициализация сокета с авторизацией
-        socket = io('http://localhost:3000', { 
-            auth: { token },
-            transports: ['websocket'] 
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        console.log('[DEBUG] Инициализация глобального сокета для:', id, 'URL:', apiUrl);
+        socket = io(apiUrl, {
+            auth: { token: tkn },
+            transports: ['websocket']
         });
 
-        const onConnect = () => {
-            console.log('[DEBUG] Соединение установлено.');
-            socket.emit('register_citizen', citizenId);
-        };
+        socket.on('connect', () => {
+            console.log('[DEBUG] Соединение установлено (Global).');
+            setConnected(true);
+            socket.emit('register_citizen', id);
+        });
 
-        const onNewMessage = (data) => {
+        socket.on('disconnect', () => {
+            console.log('[DEBUG] Соединение потеряно.');
+            setConnected(false);
+        });
+
+        socket.on('new_message', (data) => {
             setMessages(prev => ({ 
                 ...prev, 
                 [data.chatId]: [...(prev[data.chatId] || []), data] 
@@ -63,35 +78,41 @@ function App() {
                 }
                 return prevChats.map(c => c.id === data.chatId ? { ...c, lastMessage: preview, unread: !isCurrent } : c);
             });
-        };
+        });
 
-        const onChatHistory = (data) => {
+        socket.on('chat_history', (data) => {
             setMessages(prev => ({ ...prev, [data.chatId]: data.history }));
-        };
+        });
 
-        const onMessageDeleted = (data) => {
+        socket.on('message_deleted', (data) => {
             setMessages(prev => ({
                 ...prev,
                 [data.chatId]: (prev[data.chatId] || []).filter(m => m.id !== data.messageId)
             }));
-        };
+        });
 
-        const onChatStarted = (data) => setChats(prev => prev.find(c => c.id === data.id) ? prev : [data, ...prev]);
-        const onSearchResults = (results) => setSearchResults(results.filter(id => id !== citizenId));
+        socket.on('chat_started', (data) => setChats(prev => prev.find(c => c.id === data.id) ? prev : [data, ...prev]));
+        socket.on('search_results', (results) => setSearchResults(results.filter(id => id !== citizenId)));
+        
+        return socket;
+    };
 
-        socket.on('connect', onConnect);
-        socket.on('new_message', onNewMessage);
-        socket.on('chat_history', onChatHistory);
-        socket.on('message_deleted', onMessageDeleted);
-        socket.on('chat_started', onChatStarted);
-        socket.on('search_results', onSearchResults);
-
-        return () => {
+    useEffect(() => {
+        if (citizenId && token) {
+            initSocket(citizenId, token);
+        } else if (socket) {
             socket.disconnect();
-        };
+            socket = null;
+            setConnected(false);
+        }
     }, [citizenId, token]);
 
     const handleLogin = (id, authToken) => {
+        if (!id || !authToken) {
+            console.error('[DEBUG] Попытка входа с неполными данными:', { id: !!id, token: !!authToken });
+            return;
+        }
+        console.log('[DEBUG] Вход выполнен:', id);
         setCitizenId(id);
         setToken(authToken);
         localStorage.setItem('citizenId', id);
@@ -100,15 +121,26 @@ function App() {
         localStorage.setItem('workingHours', 100);
         setChats(DUMMY_CHATS);
         setMessages({});
+        initSocket(id, authToken);
     };
 
     const handleLogout = () => {
+        console.log('[DEBUG] Выход из системы...');
+        if (socket) {
+            socket.disconnect();
+            socket = null;
+        }
         setCitizenId(null);
         setToken(null);
-        localStorage.clear();
+        localStorage.removeItem('citizenId');
+        localStorage.removeItem('token');
+        localStorage.removeItem('workingHours');
+        localStorage.removeItem('isEncrypted');
         setChats(DUMMY_CHATS);
         setMessages({});
         setSelectedChat(null);
+        setMobileView('list');
+        setConnected(false);
     };
 
     const toggleEncryption = () => {
@@ -122,20 +154,28 @@ function App() {
     const handleDeleteChat = (id) => {
         setChats(prev => prev.filter(c => c.id !== id));
         setMessages(prev => { const newMsgs = { ...prev }; delete newMsgs[id]; return newMsgs; });
-        if (selectedChat?.id === id) setSelectedChat(null);
+        if (selectedChat?.id === id) {
+            setSelectedChat(null);
+            setMobileView('list');
+        }
     };
 
     const handleCreateGroup = (name, participants) => {
         const chatId = `group_${Date.now()}`;
         const newGroup = { id: chatId, name, lastMessage: 'КАНАЛ СОЗДАН', type: 'GROUP', unread: false };
         setChats(prev => [newGroup, ...prev]);
-        socket.emit('initiate_chat', { targetIds: participants, chatId, name, type: 'GROUP' });
+        const s = socket || initSocket(citizenId, token);
+        if (s) {
+            s.emit('initiate_chat', { targetIds: participants, chatId, name, type: 'GROUP' });
+        }
         setSelectedChat(newGroup);
+        setMobileView('chat');
     };
 
     const handleSelectArchive = (item) => {
         const archiveChat = { ...item, isArchive: true };
         setSelectedChat(archiveChat);
+        setMobileView('chat');
         setMessages(prev => ({
             ...prev,
             [item.id]: [{ id: `arc_${item.id}`, senderId: 'SYSTEM', subject: item.name, content: `ДАННЫЕ ИЗВЛЕЧЕНЫ.`, is_system: true }]
@@ -146,23 +186,40 @@ function App() {
         const chatId = [citizenId, targetId].sort().join('_');
         const newChat = { id: chatId, name: targetId, lastMessage: 'НОВЫЙ КАНАЛ', type: 'USER', unread: false };
         setChats(prev => prev.find(c => c.id === chatId) ? prev : [newChat, ...prev]);
-        socket.emit('initiate_chat', { targetIds: [targetId], chatId, type: 'USER' });
+        const s = socket || initSocket(citizenId, token);
+        if (s) {
+            s.emit('initiate_chat', { targetIds: [targetId], chatId, type: 'USER' });
+        }
         setSelectedChat(newChat);
+        setMobileView('chat');
     };
 
     const handleSendMessage = (content, subject) => {
-        if (selectedChat && socket) {
-            socket.emit('send_message', { chatId: selectedChat.id, content, subject });
+        const currentChat = selectedChatRef.current;
+        const s = socket || initSocket(citizenId, token);
+        
+        if (currentChat && s) {
+            console.log('[DEBUG] Отправка сообщения:', { chatId: currentChat.id, content, subject });
+            s.emit('send_message', { chatId: currentChat.id, content, subject });
+        } else {
+            console.warn('[DEBUG] Не удалось отправить сообщение: socket или selectedChat отсутствуют.', { 
+                hasSocket: !!s, 
+                hasChat: !!currentChat 
+            });
         }
     };
 
-    if (!citizenId) return <Login onLogin={handleLogin} />;
+    const handleMarkRead = (msg) => {
+        console.log('[DEBUG] Сообщение прочитано:', msg.id);
+    };
+
+    if (!citizenId || !token) return <Login onLogin={handleLogin} />;
 
     return (
-        <div className={`raya-app-container ${isEncrypted ? 'high-encryption' : ''}`}>
+        <div className={`raya-app-container ${isEncrypted ? 'high-encryption' : ''} mobile-view-${mobileView}`}>
             <div className="crt-overlay"></div>
             <header className="app-header">
-                <h1 className="main-title">СИЯНИЕ OS v1.3</h1>
+                <h1 className="main-title">СИЯНИЕ OS v1.3 {connected ? '' : '[OFFLINE]'}</h1>
                 <div className="user-stats">
                     <span className="stat-item">WH: {workingHours}</span>
                     <div className="user-badge" onClick={() => setShowSettings(!showSettings)}>{citizenId} [МЕНЮ]</div>
@@ -186,20 +243,35 @@ function App() {
             )}
 
             <div className="workspace side-layout">
-                <ChatList 
-                    chats={chats} selectedChat={selectedChat}
-                    onSelectChat={(c) => { setSelectedChat(c); setChats(prev => prev.map(i => i.id === c.id ? { ...i, unread: false } : i)); socket.emit('join_chat', c.id); }}
-                    onSearch={(q) => q.trim() ? socket.emit('search_citizen', q) : setSearchResults([])}
-                    searchResults={searchResults} onStartChat={startNewChat} onDeleteChat={handleDeleteChat}
-                    onCreateGroup={handleCreateGroup} onSelectArchive={handleSelectArchive}
-                />
-                <div className="chat-view">
+                <div className={`chat-list-wrapper ${mobileView === 'chat' ? 'mobile-hidden' : ''}`}>
+                    <ChatList 
+                        chats={chats} selectedChat={selectedChat}
+                        onSelectChat={(c) => { 
+                            setSelectedChat(c); 
+                            setMobileView('chat');
+                            setChats(prev => prev.map(i => i.id === c.id ? { ...i, unread: false } : i)); 
+                            const s = socket || initSocket(citizenId, token);
+                            if (s) s.emit('join_chat', c.id); 
+                        }}
+                        onSearch={(q) => {
+                            if (!q.trim()) return setSearchResults([]);
+                            const s = socket || initSocket(citizenId, token);
+                            if (s) s.emit('search_citizen', q);
+                        }}
+                        searchResults={searchResults} onStartChat={startNewChat} onDeleteChat={handleDeleteChat}
+                        onCreateGroup={handleCreateGroup} onSelectArchive={handleSelectArchive}
+                    />
+                </div>
+                <div className={`chat-view ${mobileView === 'list' ? 'mobile-hidden' : ''}`}>
                     {selectedChat ? (
                         <MessageWindow 
                             sender={selectedChat.name} type={selectedChat.type} messages={messages[selectedChat.id] || []}
-                            onSendMessage={handleSendMessage} onClose={() => setSelectedChat(null)}
+                            onSendMessage={handleSendMessage} onClose={() => { setSelectedChat(null); setMobileView('list'); }}
                             corruption={selectedChat.corruption || 0} isArchive={selectedChat.isArchive}
-                            onMarkRead={handleMarkRead} onDeleteMessage={(msg) => socket.emit('delete_message_global', { messageId: msg.id, chatId: msg.chatId })}
+                            onMarkRead={handleMarkRead} onDeleteMessage={(msg) => {
+                                const s = socket || initSocket(citizenId, token);
+                                if (s) s.emit('delete_message_global', { messageId: msg.id, chatId: msg.chatId });
+                            }}
                         />
                     ) : (
                         <div className="no-chat-selected">ВЫБЕРИТЕ КАНАЛ</div>

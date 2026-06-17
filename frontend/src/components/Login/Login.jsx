@@ -32,7 +32,8 @@ const Login = ({ onLogin }) => {
         }
 
         try {
-            const response = await fetch('http://localhost:3000/api/auth', {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+            const response = await fetch(`${apiUrl}/api/auth`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ citizenId, password })
