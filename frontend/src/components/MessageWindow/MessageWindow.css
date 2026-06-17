@@ -23,10 +23,10 @@
 
 @media (max-width: 768px) {
     .raya-window-inner {
-        padding: 8px;
-        margin: 0;
-        height: 100%;
-        border: none;
+        padding: 10px;
+        margin: 5px; /* Небольшой отступ на мобильных */
+        height: calc(100% - 10px);
+        border: 1px solid rgba(0, 242, 255, 0.3);
     }
 
     .raya-header {
@@ -46,6 +46,10 @@
     }
 
     .raya-body {
+        padding: 0; /* Убираем лишний паддинг внутри тела */
+    }
+
+    .raya-messages-container {
         padding: 5px;
     }
 
@@ -57,11 +61,12 @@
     .email-send-btn, .simple-send-btn {
         font-weight: bold;
         color: #000 !important;
-        padding: 10px 20px; /* Увеличиваем область нажатия на мобилках */
+        padding: 10px 20px;
     }
 
     .raya-simple-chat-form {
         padding-top: 10px;
+        margin: 5px;
     }
 }
 

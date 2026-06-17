@@ -195,7 +195,7 @@ html, body {
 
 .raya-btn.primary, .raya-btn-mini.primary {
     background: var(--raya-neon);
-    color: #000 !important; /* Важно: черный текст на ярком фоне */
+    color: #000 !important;
     font-weight: bold;
 }
 
@@ -207,6 +207,29 @@ html, body {
 .raya-btn.danger:hover {
     background: rgba(255, 107, 107, 0.1);
     box-shadow: 0 0 10px var(--raya-error);
+}
+
+.delete-chat-btn {
+    background: transparent;
+    border: 1px solid var(--raya-error);
+    color: var(--raya-error);
+    font-family: 'VT323', monospace;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 2px 8px;
+    opacity: 0.7;
+    transition: all 0.2s;
+}
+
+.delete-chat-btn:hover {
+    opacity: 1;
+    background: rgba(255, 107, 107, 0.2);
+    box-shadow: 0 0 5px var(--raya-error);
+}
+
+.full-width {
+    width: 100%;
+    margin-top: 10px;
 }
 
 /* Переменные для компонентов */
