@@ -126,7 +126,7 @@ const MessageWindow = ({ sender, messages, onSendMessage, onClose, corruption = 
                                                 placeholder="ВВЕДИТЕ СООБЩЕНИЕ..."
                                                 autoFocus
                                             />
-                                            <button type="submit" className="simple-send-btn">ОТПРАВИТЬ</button>
+                                            <button type="submit" className="raya-btn primary">ОТПРАВИТЬ</button>
                                         </>
                                     ) : (
                                         <>
@@ -137,7 +137,7 @@ const MessageWindow = ({ sender, messages, onSendMessage, onClose, corruption = 
                                                 placeholder="ВВЕДИТЕ ТЕКСТ ПИСЬМА..."
                                                 rows="3"
                                             />
-                                            <button type="submit" className="email-send-btn">ОТПРАВИТЬ ПАКЕТ</button>
+                                            <button type="submit" className="raya-btn primary">ОТПРАВИТЬ ПАКЕТ</button>
                                         </>
                                     )}
                                 </div>
