@@ -21,8 +21,14 @@ function App() {
     const [isEncrypted, setIsEncrypted] = useState(localStorage.getItem('isEncrypted') === 'true');
     const [selectedChat, setSelectedChat] = useState(null);
     const [messages, setMessages] = useState({});
-    const [chats, setChats] = useState(DUMMY_CHATS);
-    const [searchResults, setSearchResults] = useState([]);
+    const [chats, setChats] = useState(() => {
+        const saved = localStorage.getItem('raya_chats');
+        return saved ? JSON.parse(saved) : DUMMY_CHATS;
+    });
+
+    useEffect(() => {
+        localStorage.setItem('raya_chats', JSON.stringify(chats));
+    }, [chats]);    const [searchResults, setSearchResults] = useState([]);
     const [showSettings, setShowSettings] = useState(false);
     const [mobileView, setMobileView] = useState('list'); // 'list' or 'chat'
     const [connected, setConnected] = useState(false);
