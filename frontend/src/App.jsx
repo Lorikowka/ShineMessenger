@@ -57,6 +57,21 @@ function App() {
             socket.emit('register_citizen', id);
         });
 
+        socket.on('sync_chats', (serverChats) => {
+            console.log('[DEBUG] Синхронизация чатов с сервером:', serverChats);
+            setChats(prevChats => {
+                // Объединяем локальные DUMMY и серверные, приоритет серверным
+                const merged = [...serverChats];
+                const serverIds = new Set(serverChats.map(c => c.id));
+                DUMMY_CHATS.forEach(dc => {
+                    if (!serverIds.has(dc.id) && !prevChats.find(pc => pc.id === dc.id && pc.isDeleted)) {
+                        merged.push(dc);
+                    }
+                });
+                return merged;
+            });
+        });
+
         socket.on('disconnect', () => {
             console.log('[DEBUG] Соединение потеряно.');
             setConnected(false);

@@ -54,6 +54,18 @@ let db;
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         `);
+        // Таблица связи пользователей и чатов
+        await db.exec(`
+            CREATE TABLE IF NOT EXISTS user_chats (
+                citizen_id TEXT NOT NULL,
+                chatId TEXT NOT NULL,
+                chatName TEXT,
+                chatType TEXT,
+                lastMessage TEXT,
+                unread BOOLEAN DEFAULT 0,
+                PRIMARY KEY (citizen_id, chatId)
+            )
+        `);
         console.log('[DATABASE] SQLite готова и защищена.');
 
         server.listen(PORT, () => {
@@ -105,10 +117,18 @@ io.use((socket, next) => {
 
 const onlineCitizens = new Map();
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
     const citizenId = socket.citizenId;
     onlineCitizens.set(citizenId, socket.id);
     console.log(`[DEBUG] Гражданин ${citizenId} в сети.`);
+
+    // Отправляем список чатов при подключении
+    try {
+        const userChats = await db.all('SELECT chatId as id, chatName as name, chatType as type, lastMessage, unread FROM user_chats WHERE citizen_id = ?', [citizenId]);
+        socket.emit('sync_chats', userChats);
+    } catch (err) {
+        console.error('Error syncing chats:', err.message);
+    }
 
     socket.on('search_citizen', (query) => {
         const results = Array.from(onlineCitizens.keys()).filter(id => 
@@ -117,10 +137,19 @@ io.on('connection', (socket) => {
         socket.emit('search_results', results);
     });
 
-    socket.on('initiate_chat', (data) => {
+    socket.on('initiate_chat', async (data) => {
         const { targetIds, chatId, name, type } = data;
         socket.join(chatId);
-        targetIds.forEach(targetId => {
+        
+        // Сохраняем чат для создателя
+        await db.run('INSERT OR IGNORE INTO user_chats (citizen_id, chatId, chatName, chatType, lastMessage) VALUES (?, ?, ?, ?, ?)', 
+            [citizenId, chatId, type === 'GROUP' ? name : targetIds[0], type, 'НОВЫЙ КАНАЛ']);
+
+        targetIds.forEach(async targetId => {
+            // Сохраняем чат для получателя
+            await db.run('INSERT OR IGNORE INTO user_chats (citizen_id, chatId, chatName, chatType, lastMessage) VALUES (?, ?, ?, ?, ?)', 
+                [targetId, chatId, type === 'GROUP' ? name : citizenId, type, 'НОВЫЙ КАНАЛ']);
+
             const targetSocketId = onlineCitizens.get(targetId);
             if (targetSocketId) {
                 const targetSocket = io.sockets.sockets.get(targetSocketId);
@@ -139,6 +168,7 @@ io.on('connection', (socket) => {
 
     socket.on('join_chat', async (chatId) => {
         socket.join(chatId);
+        await db.run('UPDATE user_chats SET unread = 0 WHERE citizen_id = ? AND chatId = ?', [citizenId, chatId]);
         const history = await db.all('SELECT * FROM messages WHERE chatId = ? ORDER BY id ASC', [chatId]);
         socket.emit('chat_history', { chatId, history });
     });
@@ -146,6 +176,7 @@ io.on('connection', (socket) => {
     socket.on('send_message', async (data) => {
         const { chatId, content, subject } = data;
         const senderId = socket.citizenId;
+        const preview = subject || "БЕЗ ТЕМЫ";
         
         try {
             const result = await db.run(
@@ -153,6 +184,10 @@ io.on('connection', (socket) => {
                 [chatId, senderId, subject || "", content]
             );
             
+            // Обновляем lastMessage во всех связанных чатах
+            await db.run('UPDATE user_chats SET lastMessage = ?, unread = 1 WHERE chatId = ? AND citizen_id != ?', [preview, chatId, senderId]);
+            await db.run('UPDATE user_chats SET lastMessage = ? WHERE chatId = ? AND citizen_id = ?', [preview, chatId, senderId]);
+
             const newMessage = { id: result.lastID, chatId, senderId, content, subject: subject || "", timestamp: new Date() };
             io.to(chatId).emit('new_message', newMessage);
 
@@ -165,6 +200,8 @@ io.on('connection', (socket) => {
                         'INSERT INTO messages (chatId, senderId, subject, content, is_system) VALUES (?, ?, ?, ?, 1)',
                         [chatId, "RAYA_SYSTEM", sysSubj, response.data.response_text]
                     );
+                    await db.run('UPDATE user_chats SET lastMessage = ?, unread = 1 WHERE chatId = ?', [sysSubj, chatId]);
+                    
                     io.to(chatId).emit('new_message', {
                         id: sysRes.lastID, chatId, senderId: "RAYA_SYSTEM", subject: sysSubj, content: response.data.response_text, is_system: true, timestamp: new Date()
                     });
@@ -177,6 +214,10 @@ io.on('connection', (socket) => {
         const { messageId, chatId } = data;
         await db.run('DELETE FROM messages WHERE id = ?', [messageId]);
         io.to(chatId).emit('message_deleted', { messageId, chatId });
+    });
+
+    socket.on('delete_chat_for_user', async (chatId) => {
+        await db.run('DELETE FROM user_chats WHERE citizen_id = ? AND chatId = ?', [citizenId, chatId]);
     });
 
     socket.on('disconnect', () => {
