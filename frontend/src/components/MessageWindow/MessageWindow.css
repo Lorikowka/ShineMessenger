@@ -21,6 +21,50 @@
     height: 100%;
 }
 
+@media (max-width: 768px) {
+    .raya-window-inner {
+        padding: 8px;
+        margin: 0;
+        height: 100%;
+        border: none;
+    }
+
+    .raya-header {
+        padding: 5px;
+        margin-bottom: 8px;
+        flex-wrap: nowrap;
+        gap: 10px;
+    }
+
+    .raya-avatar-placeholder {
+        width: 32px; height: 32px;
+        margin-right: 8px;
+    }
+
+    .raya-info {
+        font-size: 0.85rem;
+    }
+
+    .raya-body {
+        padding: 5px;
+    }
+
+    .raya-message, .simple-message {
+        font-size: 1rem;
+        max-width: 92%;
+    }
+
+    .email-send-btn, .simple-send-btn {
+        font-weight: bold;
+        color: #000 !important;
+        padding: 10px 20px; /* Увеличиваем область нажатия на мобилках */
+    }
+
+    .raya-simple-chat-form {
+        padding-top: 10px;
+    }
+}
+
 .corruption-meta {
     margin: 0 20px;
     flex-grow: 1;
@@ -73,10 +117,11 @@
 .raya-window-inner {
     padding: 15px;
     border: 2px solid rgba(0, 242, 255, 0.3);
-    margin: 4px;
-    height: calc(100% - 8px); /* Чтобы внутреннее окно учитывало margin */
+    margin: 0;
+    height: 100%;
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
 }
 
 .raya-header {

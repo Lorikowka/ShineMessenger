@@ -3,6 +3,22 @@
     height: 500px;
 }
 
+@media (max-width: 768px) {
+    .chat-list-window {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    .chat-items-container {
+        height: calc(100vh - 250px);
+    }
+
+    .chat-item-last-msg {
+        max-width: 200px;
+    }
+}
+
 .no-padding {
     padding: 0 !important;
 }
@@ -56,22 +72,27 @@
 }
 
 .chat-items-container {
-    height: 300px;
+    height: 100%;
     overflow-y: auto;
+    direction: rtl; /* Скроллбар слева */
     scrollbar-width: thin;
     scrollbar-color: var(--raya-neon) transparent;
 }
 
+.chat-items-container > * {
+    direction: ltr; /* Возвращаем текст в нормальное русло */
+}
+
 /* Стилизация скроллбара для пиксельного вида */
 .chat-items-container::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 .chat-items-container::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.3);
 }
 .chat-items-container::-webkit-scrollbar-thumb {
     background: var(--raya-neon);
-    border: 2px solid var(--raya-bg);
+    box-shadow: 0 0 5px var(--raya-neon);
 }
 
 .chat-item {
