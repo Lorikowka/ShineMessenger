@@ -1,26 +1,28 @@
+/* Базовые сбросы */
 html, body {
     margin: 0;
     padding: 0;
     background-color: #050a0c;
-    background-image: radial-gradient(circle, #0a1f25 0%, #050a0c 100%);
-    background-attachment: fixed;
-    height: 100%;
     color: #00f2ff;
     font-family: 'VT323', monospace;
-}
-
-body {
+    height: 100%;
+    width: 100%;
     overflow: hidden;
 }
 
 .raya-app-container {
-    padding: 20px;
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    height: 100svh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 100vh;
-    height: 100svh; /* Использование svh для корректной высоты на мобильных */
+    padding: 20px;
     box-sizing: border-box;
+    background-color: #050a0c;
+    background-image: radial-gradient(circle, #0a1f25 0%, #050a0c 100%);
+    background-attachment: fixed;
 }
 
 .app-header {
@@ -29,43 +31,57 @@ body {
     align-items: center;
     width: 100%;
     max-width: 1200px;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     border-bottom: 1px solid var(--raya-neon);
     padding-bottom: 10px;
     flex-shrink: 0;
+}
+
+.main-title {
+    font-size: 2.2rem;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+    letter-spacing: 4px;
+}
+
+.user-stats {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.stat-item {
+    color: #ffd700;
+    font-size: 1.2rem;
+    text-shadow: 0 0 10px #ffd700;
 }
 
 .user-badge {
     background: rgba(0, 242, 255, 0.1);
     border: 1px solid var(--raya-neon);
     padding: 5px 15px;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     color: var(--raya-neon);
     text-shadow: 0 0 5px var(--raya-neon);
     cursor: pointer;
 }
 
-.main-title {
-    font-size: 1.8rem;
-    margin: 0;
-    text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
-    letter-spacing: 2px;
-}
-
-.side-layout {
+/* Основной макет */
+.workspace {
     display: flex;
-    gap: 0;
     width: 100%;
-    flex-grow: 1;
     max-width: 1400px;
+    flex-grow: 1;
     border: 2px solid var(--raya-neon);
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.6);
     overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
 }
 
 .chat-list-wrapper {
-    width: 350px;
+    width: 400px; /* Фиксированная ширина списка чатов на ПК */
     height: 100%;
+    border-right: 2px solid var(--raya-neon);
     flex-shrink: 0;
 }
 
@@ -73,56 +89,32 @@ body {
     flex-grow: 1;
     height: 100%;
     position: relative;
-    border-left: 2px solid var(--raya-neon);
     overflow: hidden;
 }
 
+/* Мобильная адаптация */
 @media (max-width: 768px) {
-    body {
-        overflow: hidden;
-        position: fixed;
-        width: 100%;
-        height: 100%;
-    }
-
     .raya-app-container {
         padding: 5px;
     }
 
     .app-header {
-        margin-bottom: 5px;
+        margin-bottom: 10px;
         padding: 5px;
     }
 
     .main-title {
-        font-size: 1.2rem;
+        font-size: 1.4rem;
         letter-spacing: 1px;
     }
 
-    .user-stats {
-        gap: 10px;
-    }
-
-    .stat-item {
-        font-size: 1rem;
-    }
-
-    .user-badge {
-        font-size: 0.9rem;
-        padding: 3px 8px;
-    }
-
-    .side-layout {
-        border: 1px solid var(--raya-neon);
-        height: 0; /* Позволяет flex-grow работать корректно */
+    .workspace {
+        border-width: 1px;
     }
 
     .chat-list-wrapper {
         width: 100%;
-    }
-
-    .chat-view {
-        border-left: none;
+        border-right: none;
     }
 
     .mobile-hidden {
@@ -131,7 +123,6 @@ body {
 
     .settings-window {
         width: 95vw;
-        max-width: none;
     }
 }
 
@@ -147,126 +138,30 @@ body {
     padding: 20px;
 }
 
-.user-stats {
+/* Всплывающие окна */
+.raya-modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8);
     display: flex;
     align-items: center;
-    gap: 20px;
-}
-
-.stat-item {
-    color: #ffd700;
-    font-size: 1.2rem;
-    text-shadow: 0 0 10px #ffd700;
-}
-
-/* Эффект высокого шифрования */
-.high-encryption .raya-window {
-    border-color: #ff00ff;
-    box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
-}
-
-.high-encryption .raya-neon {
-    color: #ff00ff;
+    justify-content: center;
+    z-index: 10000;
 }
 
 .settings-window {
     width: 400px;
-    z-index: 10001;
 }
 
-.group-creation-area {
-    padding: 10px;
-    border-bottom: 1px solid var(--raya-neon);
-}
-
-.group-selection-list {
-    max-height: 150px;
-    overflow-y: auto;
-    margin: 10px 0;
-    border: 1px solid rgba(0, 242, 255, 0.2);
-}
-
-.selection-item {
-    padding: 5px 10px;
-    cursor: pointer;
-}
-
-.selection-item.selected {
-    background: var(--raya-neon);
-    color: #000;
-}
-
-.full-width {
-    width: 100%;
-}
-
-.raya-btn-mini {
-    background: transparent;
-    border: 1px solid var(--raya-neon);
-    color: var(--raya-neon);
-    font-family: 'VT323', monospace;
-    cursor: pointer;
-    font-size: 0.8rem;
-}
-
-.delete-chat-btn {
-    background: transparent;
-    border: none;
-    color: var(--raya-error);
-    font-family: 'VT323', monospace;
-    cursor: pointer;
-    font-size: 0.7rem;
-    opacity: 0.5;
-}
-
-.delete-chat-btn:hover {
-    opacity: 1;
-}
-
-/* Глобальный CRT эффект поверх всего приложения */
+/* Глобальный CRT эффект */
 .crt-overlay {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-    background-size: 100% 4px, 3px 100%;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+    background-size: 100% 3px, 2px 100%;
     pointer-events: none;
-    z-index: 10000;
-}
-
-.crt-overlay::after {
-    content: " ";
-    display: block;
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(18, 16, 16, 0.1);
-    opacity: 0;
-    pointer-events: none;
-    animation: flicker 0.15s infinite;
-}
-
-@keyframes flicker {
-    0% { opacity: 0.27861; }
-    5% { opacity: 0.34769; }
-    10% { opacity: 0.23604; }
-    15% { opacity: 0.90626; }
-    20% { opacity: 0.18128; }
-    25% { opacity: 0.83891; }
-    30% { opacity: 0.65583; }
-    35% { opacity: 0.67807; }
-    40% { opacity: 0.26559; }
-    45% { opacity: 0.84693; }
-    50% { opacity: 0.96019; }
-    55% { opacity: 0.08594; }
-    60% { opacity: 0.20313; }
-    65% { opacity: 0.71988; }
-    70% { opacity: 0.53455; }
-    75% { opacity: 0.37288; }
-    80% { opacity: 0.71428; }
-    85% { opacity: 0.70419; }
-    90% { opacity: 0.7003; }
-    95% { opacity: 0.36108; }
-    100% { opacity: 0.24387; }
+    z-index: 9999;
 }
