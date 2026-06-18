@@ -44,7 +44,7 @@ function App() {
             return null;
         }
 
-        const apiUrl = 'https://shinemessenger-production.up.railway.app';
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
         console.log('[DEBUG] Инициализация глобального сокета для:', id, 'URL:', apiUrl);
         socket = io(apiUrl, {
             auth: { token: tkn },
@@ -183,7 +183,7 @@ function App() {
             localStorage.setItem('workingHours', newWh); 
             
             // Sync with server
-            const apiUrl = 'https://shinemessenger-production.up.railway.app';
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
             await fetch(`${apiUrl}/api/user/wh`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -199,7 +199,7 @@ function App() {
         const [amount, setAmount] = useState(100);
         
         const handleWhAction = async (action) => {
-            const apiUrl = 'https://shinemessenger-production.up.railway.app';
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
             try {
                 const response = await fetch(`${apiUrl}/api/admin/wh`, {
                     method: 'POST',
